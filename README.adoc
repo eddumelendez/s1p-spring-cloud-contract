@@ -1,0 +1,133 @@
+# Consumer Driven Contract Testing with Spring Cloud Contract
+
+Slides:
+
+## scc-warehouse
+
+* Enter to https://start.spring.io/
+* Choose `Web`, `Cloud Contract Verifier`
+* Add the following plugin
+
+[source,xml]
+----
+<plugin>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-contract-maven-plugin</artifactId>
+	<extensions>true</extensions>
+</plugin>
+----
+
+* Create `contracts` folder in `src/test/resources`
+* Add `should_return_all_products.groovy`
+
+[source,groovy]
+----
+import org.springframework.cloud.contract.spec.Contract
+
+Contract.make {
+    request {
+        method 'GET'
+        url '/products'
+        headers {
+            contentType applicationJsonUtf8()
+        }
+    }
+    response {
+        status 200
+        headers {
+            contentType applicationJsonUtf8()
+        }
+        body(products: [
+                [
+                        id    : $(regex('[0-9]{1,10}')),
+                        name  : "Hulk Pop",
+                        sku   : "FU32690",
+                        status: "Coming in September 2018",
+                        price : "\$ 10.99"
+                ],
+                [
+                        id    : $(regex('[0-9]{1,10}')),
+                        name  : "Groot with Stormbreaker Pop",
+                        sku   : "FU35773",
+                        status: "Coming in December 2018",
+                        price : "\$ 10.99"
+                ],
+                [
+                        id    : $(regex('[0-9]{1,10}')),
+                        name  : "Bucky with weapon",
+                        sku   : "FU35775",
+                        status: "Coming in December 2018",
+                        price : "\$ 10.99"]
+        ])
+    }
+}
+
+----
+
+NOTE: Integration with JUnit 5, see branch `junit5`.
+Integration with Spock, see branch `spock`.
+
+You can see the final solution https://github.com/eddumelendez/scc-warehouse
+
+## scc-payment
+
+* Enter to https://start.spring.io/
+* Choose `Cloud Contract Stub Runner`, `RabbitMQ`, `Cloud Stream`
+
+NOTE: Integration with JUnit 5, see branch `junit5`.
+Integration with Spock, see branch `spock`.
+
+You can see the final solution https://github.com/eddumelendez/scc-payment
+
+[source,xml]
+----
+<plugin>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-contract-maven-plugin</artifactId>
+	<extensions>true</extensions>
+</plugin>
+----
+
+* Create `contracts` folder in `src/test/resources`
+* Add `should_process_payment.groovy`
+
+[source, groovy]
+----
+import org.springframework.cloud.contract.spec.Contract
+
+Contract.make {
+    label "payment_successful"
+    input {
+        triggeredBy "makeSuccessfulPayment()"
+    }
+    outputMessage {
+        sentTo "payments"
+        body(
+                uuid: "d64c361b-29bb-43a9-8fe8-5e7e05493842",
+                status: "SUCCESS"
+        )
+        headers {
+            header("contentType", applicationJson())
+        }
+    }
+}
+
+----
+
+## scc-shop
+
+* Enter to https://start.spring.io/
+* Choose `Web`, `Cloud Contract Stub Runner`, `RabbitMQ`, `Cloud Stream`
+
+NOTE: Integration with JUnit 5, see branch `junit5`.
+Integration with Spock, see branch `spock`.
+
+### HTTP Consumer Side
+
+* Create a test and add `@AutoConfigureStubRunner(ids = "com.example:scc-warehouse:+:8080", stubsMode = StubsMode.LOCAL)`
+
+### Messaging Consumer Side
+
+* Create a test and add `@AutoConfigureStubRunner(ids = "com.example:scc-warehouse:+:8080", stubsMode = StubsMode.LOCAL)`
+
+You can see the final solution https://github.com/eddumelendez/scc-shop

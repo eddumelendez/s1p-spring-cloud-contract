@@ -1,6 +1,6 @@
 # Consumer Driven Contract Testing with Spring Cloud Contract
 
-Slides:
+Slides: https://speakerdeck.com/eddumelendez/consumer-driven-contract-testing-with-spring-cloud-contract
 
 ## scc-warehouse
 
